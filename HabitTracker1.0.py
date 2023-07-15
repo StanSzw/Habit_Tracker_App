@@ -158,14 +158,7 @@ class HabitTrackerApp(tk.Tk):
                      longest_streak = current_streak
          messagebox.showinfo("Longest Streak", f"The longest streak is {longest_streak}.")
 
-    #
- 
-        
-        
-        
-        
-        
-        
+
         
 app = HabitTrackerApp()
 app.mainloop()    
