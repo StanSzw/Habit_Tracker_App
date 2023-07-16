@@ -106,33 +106,36 @@ class HabitTrackerApp(tk.Tk):
         if habit in self.habits.keys():
             today = datetime.date.today().isoformat()
             self.habits[habit]['completed_dates'].append(today)
-            self.update_streak(habit, today)
+            self.update_streak(habit)
             messagebox.showinfo("Check Off", f"{habit} checked off!")
+            self.save_data_to_json()  # Save the updated streak data
         self.Habit_list.destroy()
        
 
         
-    def update_streak(self, habit, today):
+    def update_streak(self, habit):
         completed_dates = self.habits[habit]['completed_dates']
         current_streak = 0
-    
-        last_completed_date = None
+        
         if completed_dates:
-            last_completed_date = completed_dates[-1]
+            last_completed_date = datetime.datetime.strptime(completed_dates[-1], '%Y-%m-%d').date()
+            current_date = datetime.date.today()
+            delta = current_date - last_completed_date
     
-        if last_completed_date:
-            last_completed_date = datetime.datetime.strptime(last_completed_date, '%Y-%m-%d').date()
+            # Check if the habit is completed today and if it has the correct periodicity
+            if delta.days == 0 or delta.days % self.habits[habit]['periodicity'] == 0:
+                current_streak = 1
     
-        while last_completed_date and last_completed_date <= datetime.date.today():
-            next_due_date = last_completed_date + datetime.timedelta(days=self.habits[habit]['periodicity'])
-            if next_due_date <= datetime.date.today():
-                current_streak += 1
-                last_completed_date = next_due_date
-            else:
-                break
+                # Calculate the current streak based on the completed dates
+                for i in range(len(completed_dates) - 2, -1, -1):
+                    previous_date = datetime.datetime.strptime(completed_dates[i], '%Y-%m-%d').date()
+                    if (last_completed_date - previous_date).days == 1:
+                        current_streak += 1
+                        last_completed_date = previous_date
+                    else:
+                        break
     
         self.habits[habit]['current_streak'] = current_streak
-
         
 
     def get_habit_streaks(self):
