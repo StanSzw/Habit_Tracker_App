@@ -1,1 +1,1 @@
-{"Test1": {"periodicity": 1, "completed_dates": ["2023-07-15", "2023-07-16"], "current_streak": 0}, "Test2": {"periodicity": 1, "completed_dates": []}}
+{"Test Habit 1": {"periodicity": 2, "created_day": "2023-07-17 12:00:00", "completed_dates": ["2023-07-17"], "current_streak": 1}, "Test Habit 2": {"periodicity": 3, "created_day": "2023-07-17 12:00:00", "completed_dates": []}, "Test Habit 3": {"periodicity": 1, "created_day": "2023-07-17 12:00:00", "completed_dates": []}}

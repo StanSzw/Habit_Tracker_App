@@ -46,13 +46,58 @@ class HabitTrackerApp(tk.Tk):
 
         self.show_missing_button = tk.Button(statistics_window, text="Missing Check-offs", command=self.show_broken_streaks)
         self.show_missing_button.pack()
+        
+        self.show_missing_button = tk.Button(statistics_window, text="Sort habits by periodicity", command=self.get_habits_by_periodicity)
+        self.show_missing_button.pack()
+        
+        self.statistics_button = tk.Button(statistics_window, text="Periodicities", command=self.List_of_periodicities)
+        self.statistics_button.pack()
+
+
+    def List_of_periodicities(self):
+        periodicities_window = tk.Toplevel(self)
+        periodicities_window.title("Periodicities")
+        periodicities_window.geometry("200x200")
+        
+        for periodicity in set(habit_data['periodicity'] for habit_data in self.habits.values()):
+            periodicity_button = tk.Button(periodicities_window, text=f"Periodicity: {periodicity} days", command=lambda p=periodicity: self.show_habits_by_periodicity(p))
+            periodicity_button.pack()
+
+        
+
+    def show_habits_by_periodicity(self, periodicity):
+        habits_with_periodicity = self.get_habits_by_periodicity(periodicity)
+
+        habits_list_window = tk.Toplevel(self)
+        habits_list_window.title(f"Habits with Periodicity: {periodicity} days")
+        habits_list_window.geometry("300x200")
+
+        if not habits_with_periodicity:
+            no_habits_label = tk.Label(habits_list_window, text="No habits with this periodicity.")
+            no_habits_label.pack()
+            return
+
+        listbox = tk.Listbox(habits_list_window)
+        listbox.pack(fill=tk.BOTH, expand=True)
+
+        for habit in habits_with_periodicity:
+            listbox.insert(tk.END, habit)
+
+
+
+    def get_habits_by_periodicity(self, periodicity):
+        habits_with_periodicity = []
+        for habit, data in self.habits.items():
+            if data['periodicity'] == periodicity:
+                habits_with_periodicity.append(habit)
+        return habits_with_periodicity
 
 
 
     def show_add_habit_dialog(self):
         self.Enter_Habit = tk.Toplevel(self)
         self.Enter_Habit.title("Enter Habit")
-        self.Enter_Habit.geometry("200x200")
+        self.Enter_Habit.geometry("300x200")
         
         label = tk.Label(self.Enter_Habit, text="Enter new habit")
         label.pack()
@@ -63,7 +108,7 @@ class HabitTrackerApp(tk.Tk):
         self.task_entry = tk.Entry(self.Enter_Habit)
         self.task_entry.pack()
     
-        self.periodicity_label = tk.Label(self.Enter_Habit, text="Periodicity:")
+        self.periodicity_label = tk.Label(self.Enter_Habit, text="Periodicity \n (number of days between repeating your habit):")
         self.periodicity_label.pack()
     
         self.periodicity_entry = tk.Entry(self.Enter_Habit)
@@ -77,15 +122,17 @@ class HabitTrackerApp(tk.Tk):
     def add_new_habit(self):
         task = self.task_entry.get()
         periodicity = int(self.periodicity_entry.get())
-        self.add_habit(task, periodicity)
+        created_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        self.add_habit(task, periodicity, created_date)
         messagebox.showinfo("Success", "Habit added!")
         self.Enter_Habit.destroy()
 
 
 
-    def add_habit(self, task, periodicity):
+    def add_habit(self, task, periodicity, created_date):
         self.habits[task] = {
             'periodicity': periodicity,
+            'created_day': created_date,
             'completed_dates': []
         }     
   
@@ -108,7 +155,7 @@ class HabitTrackerApp(tk.Tk):
             self.habits[habit]['completed_dates'].append(today)
             self.update_streak(habit)
             messagebox.showinfo("Check Off", f"{habit} checked off!")
-            self.save_data_to_json()  # Save the updated streak data
+            self.save_data_to_json()
         self.Habit_list.destroy()
        
 
@@ -122,11 +169,9 @@ class HabitTrackerApp(tk.Tk):
             current_date = datetime.date.today()
             delta = current_date - last_completed_date
     
-            # Check if the habit is completed today and if it has the correct periodicity
             if delta.days == 0 or delta.days % self.habits[habit]['periodicity'] == 0:
                 current_streak = 1
     
-                # Calculate the current streak based on the completed dates
                 for i in range(len(completed_dates) - 2, -1, -1):
                     previous_date = datetime.datetime.strptime(completed_dates[i], '%Y-%m-%d').date()
                     if (last_completed_date - previous_date).days == 1:
@@ -211,8 +256,9 @@ class HabitTrackerApp(tk.Tk):
         listbox.pack(fill=tk.BOTH, expand=True)
 
         for habit, data in self.habits.items():
+            created_date = data.get('created_day', 'Unknown')
             habit_info = f"{habit} (Periodicity: {data['periodicity']})"
-            listbox.insert(tk.END, habit_info)
+            listbox.insert(tk.END, habit_info, created_date)
     
     
     def remove_habit(self):
@@ -270,4 +316,9 @@ class HabitTrackerApp(tk.Tk):
                     broken_streak_label.pack()
                     
                     
+ 
+
+
+
+                   
             
